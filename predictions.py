@@ -1,12 +1,5 @@
-
-# coding: utf-8
-
-# In[25]:
-
-
-# Martina Risteska (ID: 1003421781)
 '''
-Question 1 Skeleton Code
+20 Newsgroups predictions
 
 '''
 
@@ -16,23 +9,24 @@ import re
 import pandas as pd
 import seaborn as sn
 import zipfile 
+import sklearn.metrics as metrics
 import matplotlib.pyplot as plt
 from matplotlib import rcParams
+
 from sklearn.datasets import fetch_20newsgroups
 from sklearn.feature_extraction.text import TfidfVectorizer, CountVectorizer
 from sklearn.naive_bayes import BernoulliNB
-
 from sklearn.linear_model import LogisticRegression
 from sklearn.naive_bayes import MultinomialNB
 from sklearn.neural_network import MLPClassifier
-
-from sklearn.grid_search import GridSearchCV
-import sklearn.metrics as metrics 
+from sklearn.grid_search import GridSearchCV 
 from sklearn.feature_selection import SelectKBest, chi2
 
 
 def load_data():
-    # import and filter data
+    '''
+    Import data, and return the test and train data
+    '''
     newsgroups_train = fetch_20newsgroups(subset='train',remove=('headers', 'footers', 'quotes'))
     newsgroups_test = fetch_20newsgroups(subset='test',remove=('headers', 'footers', 'quotes'))
 
@@ -41,21 +35,33 @@ def load_data():
 
 def clean_data (string):
     '''
-    Removing all punctuations, URLS, user_names and redundant letters repeating in the text
+    Remove all punctuations, URLS, user_names and redundant letters repeating in the string and
+    return the updated string
     '''
 
     input_str = string.lower()
-    output_str = re.sub(r"http\S+", "", input_str) # remove URLs
-    output_str1 = re.sub(r"@\S+", "", output_str)   # remove user_names
+    
+    # Remove URLs
+    output_str = re.sub(r"http\S+", "", input_str) 
+    
+    # Remove user_names
+    output_str1 = re.sub(r"@\S+", "", output_str)  
+    
+    # Remove more than 3 letters showing consequtively 
     pattern = re.compile(r"(.)\1{1,}", re.DOTALL)
-    output_str2 = pattern.sub(r"\1\1", output_str1)  # remove more than 3 same letters repeating (i.e., sleeeeeep into sleep)
-    cleaned_string = re.sub('[^A-Za-z\s]+', '', output_str2).strip() # create a subset of the current string by going character by character and taking only letters, digits and spaces from the current string
+    output_str2 = pattern.sub(r"\1\1", output_str1) 
+    
+    # Create a subset of the current string
+    cleaned_string = re.sub('[^A-Za-z\s]+', '', output_str2).strip() 
     
     return cleaned_string
 
 
 def bow_features(train_data, test_data):
-    # Bag-of-words representation
+    '''
+    Create a bag-of-words representation of both train_data and test_data, and return the
+    updated bow_train and bow_test data and their feature_names
+    '''
     bow_vectorize = CountVectorizer(stop_words = 'english', lowercase = True)
     bow_train = bow_vectorize.fit_transform(train_data.data) #bag-of-word features for training data
     bow_test = bow_vectorize.transform(test_data.data)
@@ -70,7 +76,10 @@ def bow_features(train_data, test_data):
 
 
 def tf_idf_features(train_data, test_data):
-    # Bag-of-words representation
+    '''
+    Create a tfidf representation of both train_data and test_data, and return the
+    updated tf_idf_train, tf_idf_test data and their feature_names
+    '''
     tf_idf_vectorize = TfidfVectorizer(stop_words = 'english', lowercase = True, smooth_idf = True, preprocessor = clean_data)
     tf_idf_train = tf_idf_vectorize.fit_transform(train_data.data) #bag-of-word features for training data
     feature_names = tf_idf_vectorize.get_feature_names() #converts feature index to the word it represents.
@@ -84,11 +93,12 @@ def tf_idf_features(train_data, test_data):
     return tf_idf_train, tf_idf_test, feature_names
 
 
-# Bernoulli Naive Bayes model - baseline model
 def bnb_baseline(bow_train, train_labels, bow_test, test_labels):
-    # training the baseline model
-    binary_train = (bow_train>0).astype(int)
-    binary_test = (bow_test>0).astype(int)
+    '''
+    Return a trained Bernouli Naive Bayes model (baseline model)
+    '''
+    binary_train = (bow_train > 0).astype(int)
+    binary_test = (bow_test > 0).astype(int)
 
     model = BernoulliNB()
     model.fit(binary_train, train_labels)
@@ -103,32 +113,27 @@ def bnb_baseline(bow_train, train_labels, bow_test, test_labels):
     return model
 
 
-# Multinomial Naive Bayes model 
 def multinomial_naivebayes(tf_idf_train, train_labels, tf_idf_test, test_labels):
-
-    # Create model
+    '''
+    Return a trained Multinomial Naive Bayes model 
+    '''
     MNB_model = MultinomialNB()
     
-    # Create a grid search with 10-fold cv to find the best model parameters
-    '''
     # parameters used for hyper-parameters tuning
-    
     parameters = {'alpha': np.array([0.001, 0.01, 0.02, 0.05, 0.1, 1, 10, 100])}
-    '''
-    parameters = {'alpha': ([0.01])}
     
     grid_MNB = GridSearchCV(
         MNB_model,  # Multinomial Naive Bayes model
         param_grid = parameters, # parameters to tune via cross validation
-        refit=True,  # fit using all available data at the end, on the best found param combination
-        scoring='accuracy',  
-        cv=10,  # 10-fold cross-validation to be used while performing every search
+        refit = True,  # fit using all available data at the end, on the best found param combination
+        scoring = 'accuracy',  
+        cv = 10,  # 10-fold cross-validation to be used while performing every search
         )
     
     # Train the model
     MNB_model_fit = grid_MNB.fit(tf_idf_train, train_labels)
 
-    #evaluate the baseline model
+    #evaluate the model
     train_pred = MNB_model_fit.predict(tf_idf_train)
     print('Multinomial NB train accuracy = {}'.format((train_pred == train_labels).mean()))
     
@@ -137,30 +142,25 @@ def multinomial_naivebayes(tf_idf_train, train_labels, tf_idf_test, test_labels)
 
     return MNB_model_fit, test_pred
 
-# Multi-class Logistic regression model
+
 def logistic_reg(tf_idf_train, train_labels, tf_idf_test, test_labels):
-    
-    # Create model
+    '''
+    Return a trained Multi-class Logistic regression model 
+    '''
     log_reg_model = LogisticRegression()
     
-    # Create a grid search with 10-fold cv to find the best model parameters
-    '''
     # parameters used for hyper-parameters tuning
-    
     params = {'C': np.array([0.01, 0.1, 1.0, 10.0, 100.0]),
              'penalty': ('l1','l2'),
              'multi_class': ('ovs', 'multinomial'),
              'solver': ('liblinear', 'newton-cg', 'lbfgs')}
-    '''
-    params = {'C': ([10]),
-             'penalty': (['l2'])}
     
     grid_log_reg = GridSearchCV(
         log_reg_model,  # Logistic regression model
         param_grid = params, # parameters to tune via cross validation
-        refit=True,  # fit using all available data at the end, on the best found param combination
-        scoring='accuracy',  
-        cv=10,  # 10-fold cross-validation to be used while performing every search
+        refit = True,  # fit using all available data at the end, on the best found param combination
+        scoring = 'accuracy',  
+        cv = 10,  # 10-fold cross-validation to be used while performing every search
         )
     
     # Train the model
@@ -176,30 +176,26 @@ def logistic_reg(tf_idf_train, train_labels, tf_idf_test, test_labels):
     return log_model_fit
 
 
-# Multi-layer perceptron model
+
 def multilayer_perceptron(tf_idf_train, train_labels, tf_idf_test, test_labels):
+    '''
+    Return a trained Multi-layer perceptron model
+    '''
     
     multi_perceptron_model = MLPClassifier()
     
-    # Create a grid search with 10-fold cv to find the best model parameters
-    '''
     # parameters used for hyper-parameters tuning
-    
     params = {'alpha': np.array([0.0001, 0.001, 0.1, 10]),
              'hidden_layer_sizes': [(10,), (10,1), (20,), (20,1), (40,), (40,2), (100,)],
              'learning_rate' : (['adaptive'])}
-    '''
-    
-    params = {'alpha':  ([000.1]),
-             'hidden_layer_sizes': [(100,)],
-             'learning_rate' : (['adaptive'])}
+
     
     grid_multi_perceptron = GridSearchCV(
         multi_perceptron_model,  # Logistic regression model
         param_grid = params, # parameters to tune via cross validation
         refit=True,  # fit using all available data at the end, on the best found param combination
         scoring='accuracy',  
-        cv=3,  # 10-fold cross-validation to be used while performing every search
+        cv = 10,  # 10-fold cross-validation to be used while performing every search
         )
     
     # Train the model
@@ -216,6 +212,10 @@ def multilayer_perceptron(tf_idf_train, train_labels, tf_idf_test, test_labels):
 
 
 def confusion_matrix(true_target, prediction):
+    '''
+    Compute the confusion matrix (k×k matrix) where
+    C_ij is the number of test examples belonging to class j that were classified as i.
+    '''
         
     k = 20
     U = np.zeros((k, k))  # upper triagnular matrix (used to fill in the negative values of the differences)
@@ -249,43 +249,8 @@ def confusion_matrix(true_target, prediction):
             
             if(differences[idx] == 0):
                 D[topic_class, topic_class] = counts
-
-    conf_matrix = pd.DataFrame(L + D + U)
     
-    
-    # Find the classes for wich the classifier is most confused about
-    max_misclassified_classes_row = pd.DataFrame()
-    max_misclassified_classes_col = pd.DataFrame()
-    misclasification = pd.DataFrame(L + U)
-    
-    # Max per column
-    max_misclassified_classes_col['True Class'] = np.array(range(0,k))
-    max_misclassified_classes_col['Predicted Class'] = misclasification.idxmax(axis = 1)
-    max_misclassified_classes_col['Counts'] = misclasification.max(axis = 1)
-    max_misclassified_classes_col = max_misclassified_classes_col[max_misclassified_classes_col['Counts'] != 0]
-    max_misclassified_classes_col['Predicted-True Tuple'] = list(zip(max_misclassified_classes_col['True Class'], max_misclassified_classes_col['Predicted Class']))
-    max_misclassified_classes_col = max_misclassified_classes_col.drop(['True Class', 'Predicted Class'], axis=1)
-
-    # Max per row
-    max_misclassified_classes_row['Predicted Class'] = np.array(range(0,k))
-    max_misclassified_classes_row['True Class'] = misclasification.idxmax(axis = 0)
-    max_misclassified_classes_row['Counts'] = misclasification.max(axis = 0)
-    max_misclassified_classes_row = max_misclassified_classes_row[max_misclassified_classes_row['Counts'] != 0]
-    max_misclassified_classes_row['Predicted-True Tuple'] = list(zip(max_misclassified_classes_row['True Class'], max_misclassified_classes_row['Predicted Class']))
-    max_misclassified_classes_row = max_misclassified_classes_row.drop(['True Class', 'Predicted Class'], axis=1)
-    
-    # merge the two dataframes
-    max_misclassified_classes = pd.merge(max_misclassified_classes_col, max_misclassified_classes_row, on= "Predicted-True Tuple")
-    max_misclassified_classes['Counts'] = max_misclassified_classes['Counts_x'] + max_misclassified_classes['Counts_y']
-    
-    # Sort the tuple elements
-    for idx, row in enumerate(max_misclassified_classes["Predicted-True Tuple"]):
-        max_misclassified_classes.at[idx, "Predicted-True Tuple"] = tuple(sorted(row))
-    
-    max_misclassified_classes = max_misclassified_classes.groupby('Predicted-True Tuple', as_index=False).sum()
-    max_misclassified_classes = max_misclassified_classes.sort_values('Counts', ascending = False)
-    
-    return conf_matrix, max_misclassified_classes['Predicted-True Tuple'].head(1)
+    return pd.DataFrame(L + D + U)
 
 
 
@@ -350,8 +315,9 @@ if __name__ == '__main__':
     
     # Multinomial Naive Bayes
     mnb_model, mnb_predicted = multinomial_naivebayes(K_feature_train, train_data.target, K_feature_test, test_data.target)
-    matrix, max_confusion_classes = confusion_matrix(test_data.target, mnb_predicted)
-    print("The classifier was the most confused about the following classes:", max_confusion_classes)
+    
+    # Confusion Matrix
+    matrix = confusion_matrix(test_data.target, mnb_predicted)
     vizualize_confusion_matrix(matrix)
     
 
