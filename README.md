@@ -18,4 +18,6 @@ Feature cleaning is an important step, as text data is usually highly redundant 
 
 GridSearchCV() procedure from scikit-learn python library was used to search for the best parameters automatically and perform k-fold cross-validation at the same time. The values of the parameters were pre-defined and vary from the type of the classifier. For all classifiers 'scoring' accuracy was used to find the best model parameters, and to return the refitted estimator using the best found parameters on the train set.  
 
-**4. Model Selection**  Several models were evaluated in order to find the most suitable models for this task, such as: 1) Multinomial and Gaussian Naive Bayes, 2) multi-class logistic regression, 3) support-vector machines, 4) perceptron, 5) multi-layer perceptron, and 6) K-means. The models with the highest accuracy were: multi-class logistic regression, multi-layer perceptron and multinomial naive bayes. Since these models had the best performance, were further considered for the text classification task. 
+**4. Model Selection**  
+
+Several models were evaluated in order to find the most suitable models for this task, such as: 1) Multinomial and Gaussian Naive Bayes, 2) multi-class logistic regression, 3) support-vector machines, 4) perceptron, 5) multi-layer perceptron, and 6) K-means. The models with the highest accuracy were: multi-class logistic regression, multi-layer perceptron and multinomial naive bayes. Since these models had the best performance, were further considered for the text classification task. 
