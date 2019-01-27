@@ -4,7 +4,7 @@ This repository contains an implementation of several machine learning models us
 
 ## **1. Feature Vectorization**
 
-To work with text data there are two methods that converts the raw text structures into numerical feature vectors using the vectorization process. The bag-of-words strategy returns a spare feature matrix X including the word counts, and the frequency-inverse document frequency (tf-idf) approach produces a sparse feature vector that scales down the impact of words that appear frequently in the corpus but are less valuable for the prediction. The formula is:
+To work with text data there are two methods that converts the raw text structures into numerical feature vectors using the vectorization process. The bag-of-words strategy returns a sparse feature matrix X including the word counts, and the frequency-inverse document frequency (tf-idf) approach produces a sparse feature vector that scales down the impact of words that appear frequently in the corpus but are less valuable for the prediction. The formula is:
 
 ![eq1](https://latex.codecogs.com/gif.latex?%24%7B%5Cdisplaystyle%20%5Cmathrm%20%7Btfidf%7D%20%28t%2Cd%2CD%29%3D%5Cmathrm%20%7Btf%7D%20%28t%2Cd%29%5Ccdot%20%5Cmathrm%20%7Bidf%7D%20%28t%2CD%29%7D%20%24)
 
