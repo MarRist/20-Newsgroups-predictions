@@ -16,7 +16,6 @@ from matplotlib import rcParams
 from sklearn.datasets import fetch_20newsgroups
 from sklearn.feature_extraction.text import TfidfVectorizer, CountVectorizer
 from sklearn.naive_bayes import BernoulliNB
-from sklearn.linear_model import LogisticRegression
 from sklearn.naive_bayes import MultinomialNB
 from sklearn.neural_network import MLPClassifier
 from sklearn.grid_search import GridSearchCV 
@@ -82,7 +81,7 @@ def tf_idf_features(train_data, test_data):
     '''
     tf_idf_vectorize = TfidfVectorizer(stop_words = 'english', lowercase = True, smooth_idf = True, preprocessor = clean_data)
     tf_idf_train = tf_idf_vectorize.fit_transform(train_data.data) #bag-of-word features for training data
-    feature_names = tf_idf_vectorize.get_feature_names() #converts feature index to the word it represents.
+    feature_names = tf_idf_vectorize.get_feature_names() #converts feature index to the word it represents
     tf_idf_test = tf_idf_vectorize.transform(test_data.data)
     
     shape = tf_idf_train.shape
@@ -142,41 +141,6 @@ def multinomial_naivebayes(tf_idf_train, train_labels, tf_idf_test, test_labels)
 
     return MNB_model_fit, test_pred
 
-
-def logistic_reg(tf_idf_train, train_labels, tf_idf_test, test_labels):
-    '''
-    Return a trained Multi-class Logistic regression model 
-    '''
-    log_reg_model = LogisticRegression()
-    
-    # parameters used for hyper-parameters tuning
-    params = {'C': np.array([0.01, 0.1, 1.0, 10.0, 100.0]),
-             'penalty': ('l1','l2'),
-             'multi_class': ('ovs', 'multinomial'),
-             'solver': ('liblinear', 'newton-cg', 'lbfgs')}
-    
-    grid_log_reg = GridSearchCV(
-        log_reg_model,  # Logistic regression model
-        param_grid = params, # parameters to tune via cross validation
-        refit = True,  # fit using all available data at the end, on the best found param combination
-        scoring = 'accuracy',  
-        cv = 10,  # 10-fold cross-validation to be used while performing every search
-        )
-    
-    # Train the model
-    log_model_fit = grid_log_reg.fit(tf_idf_train, train_labels)
-    
-    # Evaluate the model
-    log_train_pred = log_model_fit.predict(tf_idf_train)
-    print('Logistic Regression train accuracy = {}'.format((log_train_pred == train_labels).mean()))
-    
-    log_test_pred = log_model_fit.predict(tf_idf_test)
-    print('Logistic Regression test accuracy = {}'.format((log_test_pred == test_labels).mean()))
-    
-    return log_model_fit
-
-
-
 def multilayer_perceptron(tf_idf_train, train_labels, tf_idf_test, test_labels):
     '''
     Return a trained Multi-layer perceptron model
@@ -191,7 +155,7 @@ def multilayer_perceptron(tf_idf_train, train_labels, tf_idf_test, test_labels):
 
     
     grid_multi_perceptron = GridSearchCV(
-        multi_perceptron_model,  # Logistic regression model
+        multi_perceptron_model,  # multi-layer perception model
         param_grid = params, # parameters to tune via cross validation
         refit=True,  # fit using all available data at the end, on the best found param combination
         scoring='accuracy',  
@@ -213,7 +177,7 @@ def multilayer_perceptron(tf_idf_train, train_labels, tf_idf_test, test_labels):
 
 def confusion_matrix(true_target, prediction):
     '''
-    Compute the confusion matrix (k×k matrix) where
+    Compute the confusion matrix (k x k matrix) where
     C_ij is the number of test examples belonging to class j that were classified as i.
     '''
         
@@ -231,7 +195,10 @@ def confusion_matrix(true_target, prediction):
     # sort the dataframe 
     data_df_sorted = data_df.sort_values('TrueLabels', ascending = True)
     
-    for topic_class in range(0,k):
+    # Note: Upper triangular matrix has negative values when true != predicted class
+    # lower triangular had positive values when true != predicted class
+    # diagonal has zeros when true == predicted class
+    for topic_class in range(0, k):
         data_df_subset = data_df_sorted.loc[data_df_sorted.TrueLabels == topic_class]
         n = data_df_subset.shape[0]
         data_df_difference = (data_df_subset.TrueLabels - data_df_subset.PredictedLabels).to_frame(name = 'Difference')
@@ -306,9 +273,6 @@ if __name__ == '__main__':
     # MODELS
     # Bernouli Naive Bayes
     bnb_model = bnb_baseline(train_bow, train_data.target, test_bow, test_data.target)
-
-    # Logistic Regression
-    log_reg_model = logistic_reg(K_feature_train, train_data.target, K_feature_test, test_data.target)
     
     # Multi-layer Perceptron
     multi_perceptron_model = multilayer_perceptron(K_feature_train, train_data.target, K_feature_test, test_data.target)
