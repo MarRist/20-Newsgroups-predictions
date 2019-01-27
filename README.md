@@ -20,4 +20,4 @@ GridSearchCV() procedure from scikit-learn python library was used to search for
 
 ## **4. Model Selection**  
 
-Several models were evaluated in order to find the most suitable models for this task, such as: 1) Multinomial and Gaussian Naive Bayes, 2) multi-class logistic regression, 3) support-vector machines, 4) perceptron, 5) multi-layer perceptron, and 6) K-means. The models with the highest accuracy were: multi-class logistic regression, multi-layer perceptron and multinomial naive bayes. Since these models had the best performance, were further considered for the text classification task. 
+Several models were evaluated in order to find the most suitable models for this task, such as: 1) Multinomial and Gaussian Naive Bayes, 2) multi-class logistic regression, 3) support-vector machines, 4) perceptron, 5) multi-layer perceptron, and 6) K-means. The models with the highest accuracy were: multi-layer perceptron and multinomial naive bayes. 
