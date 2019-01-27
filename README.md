@@ -12,7 +12,7 @@ where t is term (feature), d is document, and D is the corpus. For both of the m
 
 ## **2. Feature Extraction**
 
-After the feature vectorization step, the raw text data was cleaned from numbers, URLs links, and punctuation. Moreover, words such as "the", known as stop words were also removed from the corpus. Furthermore, 11,000 features with the highest chi-square score were extracted using the SelectKBest() procedure in scikit-learn. This was done by computing chi-squared stats between each non-negative feature and each class for features in the range of (1000, 88000) while calculating the train and validation accuracy using the multinomial naive bayes classifier with 10-fold cross-validation. Finally, the feature dimension was reduced to 11,000 features which have reduced the computation time of the classifiers.   
+After the feature vectorization step, the raw text data was cleaned from numbers, URLs links, and punctuation. Moreover, stop words were also removed from the corpus. Furthermore, 11,000 features with the highest chi-square score were extracted using [SelectKBest()](https://scikit-learn.org/stable/modules/generated/sklearn.feature_selection.SelectKBest.html). This was done by computing chi-squared stats between each non-negative feature and each class for features in the range of (1000, 88000) while calculating the train and validation accuracy using the multinomial naive bayes classifier with 10-fold cross-validation. Finally, the feature dimension was reduced to 11,000 features which have reduced the computation time of the classifiers.   
 
 ## **3. Parameter Tuning**
 
